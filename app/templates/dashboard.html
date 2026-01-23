@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Dashboard</h1>
+
+    <div id="forecast">
+
+        {% for forecast in forecasts %}
+        <div class="rounded border" style="margin-bottom:8px; padding:4px;">
+            <h2>{{ forecast.name }}</h2>
+            <div>Temp: {{ forecast.temperature }} F</div>
+            <div>Forecast: {{ forecast.detailed_forecast }}</div>
+            <div>Wind: {{ forecast.wind_info }}</div>
+            <img class="rounded-circle border" src="{{ forecast.icon }}">
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}
