@@ -2,5 +2,36 @@
 
 {% block content %}
     <h1>Weather</h1>
-    <code style="display:block; white-space:pre-wrap;">{{ code }}</code>
+
+    <h3>To Begin, Please Select a Location</h3>
+
+    <form action="{{ url_for('dashboard') }}" method="get" novalidate>
+        <p>
+            {{ form.lat.label }}<br>
+            {{ form.lat(id="lat_field", size=8) }}
+        </p>
+        <p>
+            {{ form.lon.label }}<br>
+            {{ form.lon(id="lon_field", size=8) }}
+        </p>
+        <button type="submit" class="btn btn-primary">Load Coordinates</button>
+    </form>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function(){
+            if(!navigator.geolocation){
+                console.warn("Geolocation not supported");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                function(position){
+                    document.getElementById("lat_field").value = position.coords.latitude.toFixed(4);
+                    document.getElementById("lon_field").value = position.coords.longitude.toFixed(4);
+                },
+                function(error){
+                    console.warm("Geolocation error:", error.message);
+                }
+            );
+        });
+    </script>
 {% endblock %}

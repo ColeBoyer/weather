@@ -1,79 +1,33 @@
-from flask import render_template
+from flask import render_template, flash, redirect, request
 from app import app
-from api.weather import get_forecast
 
-import requests
-import json
+from app.forms import LocationForm
+import api.weather as weather
 
 
-@app.route('/')
-@app.route('/index')
+@app.route("/")
+@app.route("/index")
 def index():
-    coords = app.config['COORDINATES']
-    user_agent = app.config['USER_AGENT']
+    form = LocationForm()
+    if form.validate_on_submit():
+        flash("Location")
+        return redirect("/dashboard")
 
-    #make a request
-    coords_endpoint = f"https://api.weather.gov/points/{coords[0]},{coords[1]}"
-    headers = {
-        'user-agent': user_agent,
-        'accept': 'application/geo+json'
-    }
-    r = requests.get(coords_endpoint, headers=headers)
+    return render_template("index.html", form=form)
 
-    #get grid points
-    response = json.loads(r.text)
-    station = response["properties"]["cwa"]
-    gridX = response["properties"]["gridX"]
-    gridY = response["properties"]["gridY"]
-    print(f"{station}: {gridX}, {gridY}")
 
-    forecast_endpoint = f"https://api.weather.gov/gridpoints/{station}/{gridX},{gridY}/forecast"
-    r = requests.get(forecast_endpoint, headers=headers)
-    print(r.text)
-
-    return render_template("index.html", code=r.text)
-
-@app.route('/dashboard')
+@app.route("/dashboard")
 def dashboard():
+    # Check if we have valid GET information
+    lat = request.args.get("lat")
+    lon = request.args.get("lon")
+    if not lat or not lon:
+        return redirect("/index")
 
-    demo_forecasts = [
-        {
-            'name': "Tuesday",
-            'temperature': 71,
-            'detailed_forecast': "Something here",
-            'wind_info': "windSpeed windDirection",
-            'icon': "https://api.weather.gov/icons/land/night/fog?size=medium",
-        },
-        {
-            'name': "Tuesday",
-            'temperature': 72,
-            'detailed_forecast': "Something here",
-            'wind_info': "windSpeed windDirection",
-            'icon': "https://api.weather.gov/icons/land/night/fog?size=medium",
-        },
-        {
-            'name': "Tuesday",
-            'temperature': 73,
-            'detailed_forecast': "Something here",
-            'wind_info': "windSpeed windDirection",
-            'icon': "https://api.weather.gov/icons/land/night/fog?size=medium",
-        },
-        {
-            'name': "Tuesday",
-            'temperature': 74,
-            'detailed_forecast': "Something here",
-            'wind_info': "windSpeed windDirection",
-            'icon': "https://api.weather.gov/icons/land/night/fog?size=medium",
-        },
-        {
-            'name': "Tuesday",
-            'temperature': 75,
-            'detailed_forecast': "Something here",
-            'wind_info': "windSpeed windDirection",
-            'icon': "https://api.weather.gov/icons/land/night/fog?size=medium",
-        },
-    ]
+    # Validate latitude and longitude
+    if not weather.validate_latlon(float(lat), float(lon)):
+        return redirect("/index")
 
-    forecasts = get_forecast(app.config['USER_AGENT'], app.config['COORDINATES'][0], app.config['COORDINATES'][1])
+    forecasts = weather.get_forecast(app.config["USER_AGENT"], lat, lon)
 
     return render_template("dashboard.html", forecasts=forecasts)

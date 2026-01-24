@@ -5,6 +5,6 @@ Start the server with the following command
 Then navigate to localhost:5000 to view the site!
 
 ### Project Goals
-1. Have the 5 day weather forecast displayed.
+1. Have the 5 day weather forecast displayed. (Done)
 2. Choose a location.
 3. Get alerts.
